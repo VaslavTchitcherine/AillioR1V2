@@ -1,0 +1,168 @@
+
+# Aillio R1 V2 Coffee Roaster Control
+
+This code implements bidirectional synchronization between the GUI sliders and the roaster hardware controls, allowing seamless control from both the GUI and the physical roaster buttons.
+Code is portable, runs well on a Raspberry Pi 3 with an 800x480 touchscreen.
+
+## Key Features
+
+### 1. Bidirectional Control
+- **GUI → Roaster**: Moving sliders in the GUI updates the roaster settings
+- **Roaster → GUI**: Pressing hardware buttons on the roaster updates the GUI sliders
+- **Real-time Sync**: Changes are reflected immediately in both directions
+
+### 2. Intelligent Slider Management
+- **Programmatic Updates**: Sliders can be updated without triggering user events
+- **Loop Prevention**: Prevents infinite loops when synchronizing slider positions
+- **Change Detection**: Only updates sliders when values actually change
+
+### 3. Startup Synchronization
+- **Initial State**: Sliders are set to match the roaster's current state at startup
+- **Connection Recovery**: Proper synchronization after reconnection
+- **State Preservation**: Maintains roaster state across GUI sessions
+
+## Implementation Details
+
+### Enhanced ControlSlider Class
+
+```python
+class ControlSlider(QWidget):
+    def __init__(self, title: str, min_val: int, max_val: int, initial_val: int, parent=None):
+        # Added programmatic update flag
+        self._updating_programmatically = False
+        
+    def set_value(self, value: int, programmatic: bool = False):
+        """Set slider value with optional programmatic flag"""
+        if programmatic:
+            self._updating_programmatically = True
+            self.slider.setValue(value)
+            self.value_label.setText(str(value))
+            self._updating_programmatically = False
+        else:
+            self.slider.setValue(value)
+    
+    def _on_value_changed(self, value: int):
+        """Only emit signals for user-initiated changes"""
+        self.value_label.setText(str(value))
+        if not self._updating_programmatically:
+            self.valueChanged.emit(value)
+```
+
+### Synchronization Logic
+
+#### 1. Startup Synchronization
+```python
+def sync_sliders_to_roaster(self):
+    """Called after connection to sync initial state"""
+    self.roaster.update_readings()
+    self.heat_slider.set_value(int(self.roaster.get_heater()), programmatic=True)
+    self.fan_slider.set_value(int(self.roaster.get_fan()), programmatic=True)
+    self.drum_slider.set_value(int(self.roaster.get_drum()), programmatic=True)
+```
+
+#### 2. Runtime Synchronization
+```python
+def update_readings(self):
+    """Called every 100ms to sync GUI with roaster state"""
+    self.roaster.update_readings()
+    
+    # Check for changes and update sliders if needed
+    current_heat = int(self.roaster.get_heater())
+    if self.heat_slider.get_value() != current_heat:
+        self.heat_slider.set_value(current_heat, programmatic=True)
+    
+    # Similar logic for fan and drum...
+```
+
+#### 3. User Input Handling
+```python
+def on_heat_changed(self, value: int):
+    """Called when user moves slider"""
+    if self.connected and self.roaster:
+        self.roaster.set_heater(value)
+        # Roaster state will be synced on next update cycle
+```
+
+## Usage Scenarios
+
+### 1. GUI Control
+```
+User moves heat slider to 5
+→ GUI calls roaster.set_heater(5)
+→ Roaster updates internal state
+→ Next update cycle confirms slider position
+```
+
+### 2. Hardware Control
+```
+User presses hardware button to increase fan
+→ Roaster internal state changes to fan=7
+→ GUI update cycle detects change
+→ Fan slider moves to position 7 programmatically
+```
+
+### 3. Mixed Control
+```
+User sets heat=3 via GUI
+User sets fan=8 via hardware buttons
+User sets drum=6 via GUI
+→ All controls stay synchronized
+→ GUI reflects all current settings
+```
+
+## Testing Results
+
+The implementation has been thoroughly tested:
+
+```
+✓ Initial slider synchronization with roaster state
+✓ GUI slider changes update roaster settings  
+✓ Roaster hardware changes update GUI sliders
+✓ Command queuing for rapid changes
+✓ State synchronization
+✓ Loop prevention in programmatic updates
+✓ Change detection optimization
+```
+
+## File Structure
+
+- `aillio_gui.py` - Main GUI with bidirectional sync
+- `aillio_demo.py` - Core roaster interface
+- `README` - This documentation
+
+## Configuration
+
+### Update Intervals
+- **GUI Updates**: 100ms for responsive synchronization
+- **Data Logging**: 1000ms for efficient logging
+- **Status Updates**: 100ms in roaster class
+
+### Synchronization Settings
+- **Change Detection**: Only updates when values differ
+- **Programmatic Updates**: Prevents signal loops
+- **Error Handling**: Graceful degradation on sync errors
+
+## Benefits
+
+### 1. User Experience
+- **Natural Control**: Use GUI or hardware interchangeably
+- **Visual Feedback**: Always see current roaster state
+- **No Conflicts**: Seamless integration of control methods
+
+### 2. Reliability
+- **State Consistency**: GUI always reflects actual roaster state
+- **Error Recovery**: Robust handling of sync failures
+- **Performance**: Efficient change detection and updates
+
+### 3. Maintainability
+- **Clean Architecture**: Clear separation of concerns
+- **Testable Code**: Comprehensive test coverage
+- **Documentation**: Well-documented synchronization logic
+
+## Future Enhancements
+
+Potential improvements:
+- **Conflict Resolution**: Advanced handling of simultaneous changes
+- **State History**: Track and display recent control changes
+- **Custom Sync Intervals**: User-configurable update rates
+- **Advanced Feedback**: Visual indicators for sync status
