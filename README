@@ -166,3 +166,38 @@ Potential improvements:
 - **State History**: Track and display recent control changes
 - **Custom Sync Intervals**: User-configurable update rates
 - **Advanced Feedback**: Visual indicators for sync status
+
+---------------
+
+
+**Set up USB permissions (Linux/macOS):**
+
+   **Linux:**
+   ```bash
+   # Create udev rule for Aillio R1 V2
+   sudo tee /etc/udev/rules.d/99-aillio-r1.rules << EOF
+   # Aillio R1 V2 Coffee Roaster
+   SUBSYSTEM=="usb", ATTR{idVendor}=="0483", ATTR{idProduct}=="5741", MODE="0666", GROUP="plugdev"
+   SUBSYSTEM=="usb", ATTR{idVendor}=="0483", ATTR{idProduct}=="a27e", MODE="0666", GROUP="plugdev"
+   EOF
+
+   # Reload udev rules
+   sudo udevadm control --reload-rules
+   sudo udevadm trigger
+
+   # Add your user to plugdev group
+   sudo usermod -a -G plugdev $USER
+
+   # Log out and back in for group changes to take effect
+   ```
+
+   **macOS:**
+   ```bash
+   # No special setup usually required, but you may need to run with sudo
+   # if you encounter permission issues
+   ```
+
+   **Windows setup:**
+   - Install libusb drivers (usually automatic with pyusb installation)
+   - May require running as administrator
+
