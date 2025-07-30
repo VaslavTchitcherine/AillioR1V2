@@ -50,8 +50,8 @@ except ImportError:
 try:
 	from aillio import AillioR1Demo
 except ImportError:
-	print("Error: aillio_r1_demo_no_threads.py not found in the same directory")
-	print("Please ensure aillio_r1_demo_no_threads.py is in the same folder as this script")
+	print("Error: aillio_demo.py not found in the same directory")
+	print("Please ensure aillio_demo.py is in the same folder as this script")
 	sys.exit(1)
 
 class TemperatureDisplay(QLabel):
@@ -456,7 +456,8 @@ class AillioR1GUI(QMainWindow):
 		"""Initialize the data logging file."""
 		try:
 			timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-			###filename = f"aillio_r1_log_bidirectional_{timestamp}.txt"
+			if not os.path.exists("logs"):
+				os.makedirs("logs")
 			filename = f"logs/{timestamp}.txt"
 
 			self.log_file = open(filename, 'w')
