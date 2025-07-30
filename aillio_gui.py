@@ -50,8 +50,8 @@ except ImportError:
 try:
 	from aillio import AillioR1Demo
 except ImportError:
-	print("Error: aillio_demo.py not found in the same directory")
-	print("Please ensure aillio_demo.py is in the same folder as this script")
+	print("Error: aillio.py not found in the same directory")
+	print("Please ensure aillio.py is in the same folder as this script")
 	sys.exit(1)
 
 class TemperatureDisplay(QLabel):
