@@ -220,7 +220,7 @@ class AillioR1Demo:
 					# XXX: this is NTC sensor
 					###self.bt = round(unpack('f', state[0:4])[0], 1)
 					# this is the newer IBTS bean temp sensor
-					self.bt = round(unpack('f', state[32:36])[0], 1)
+					self.bt = round(unpack('f', state[36:40])[0], 1)
 					self.bt_ror = round(unpack('f', state[4:8])[0], 1)
 					self.dt = round(unpack('f', state[8:12])[0], 1)
 
