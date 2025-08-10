@@ -217,11 +217,11 @@ class AillioR1Demo:
 
 				if valid == 10:
 					# Parse sensor data
-					# XXX: this is NTC sensor
-					###self.bt = round(unpack('f', state[0:4])[0], 1)
-					# this is the newer IBTS bean temp sensor
-					self.bt = round(unpack('f', state[36:40])[0], 1)
+					# bean temp
+					self.bt = round(unpack('f', state[0:4])[0], 1)
+					# bean temp rate of change
 					self.bt_ror = round(unpack('f', state[4:8])[0], 1)
+					# drum temp
 					self.dt = round(unpack('f', state[8:12])[0], 1)
 
 					# Parse control settings
